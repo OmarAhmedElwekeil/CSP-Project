@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instructors Management - E-JUST Timetable System</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand" style="color: white;">E-JUST Timetable System</div>
+        <div class="navbar-menu"></div>
+    </nav>
+
+    <div class="page-header">
+        <h1>Instructors Management</h1>
+        <p>Manage faculty instructors and their availability</p>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Instructors</h2>
+                <button onclick="openInstructorModal()" class="btn btn-primary">+ Add Instructor</button>
+            </div>
+            <div class="card-body">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <input 
+                            type="text" 
+                            id="instructor-search" 
+                            class="form-control" 
+                            placeholder="Search instructors..."
+                            onkeyup="filterInstructors()"
+                        >
+                    </div>
+                </div>
+                <div class="table-container">
+                    <div id="instructors-table"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructor Modal -->
+    <div class="modal-overlay" id="instructor-modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="instructor-modal-title">Add Instructor</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="instructor-form">
+                    <input type="hidden" id="instructor-id" name="instructor_id">
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="instructor-name">Instructor Name *</label>
+                        <input 
+                            type="text" 
+                            id="instructor-name" 
+                            name="instructor_name" 
+                            class="form-control" 
+                            required 
+                            placeholder="e.g., Dr. John Smith"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="instructor-courses">Qualified Courses</label>
+                        <select 
+                            id="instructor-courses" 
+                            name="course_ids" 
+                            class="form-control" 
+                            multiple 
+                            size="5"
+                        >
+                        </select>
+                        <small class="form-text">Hold Ctrl/Cmd to select multiple courses</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button onclick="instructorModal.close()" class="btn btn-secondary">Cancel</button>
+                <button onclick="saveInstructor()" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/instructors.js"></script>
+</body>
+</html>

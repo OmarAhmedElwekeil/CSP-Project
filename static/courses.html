@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Courses Management - E-JUST Timetable System</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand" style="color: white;">E-JUST Timetable System</div>
+        <div class="navbar-menu"></div>
+    </nav>
+
+    <div class="page-header">
+        <h1>Courses Management</h1>
+        <p>Manage courses, assign instructors and TAs</p>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Courses</h2>
+                <button onclick="openCourseModal()" class="btn btn-primary">+ Add Course</button>
+            </div>
+            <div class="card-body">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <input 
+                            type="text" 
+                            id="course-search" 
+                            class="form-control" 
+                            placeholder="Search courses..."
+                            onkeyup="filterCourses()"
+                        >
+                    </div>
+                </div>
+                <div class="table-container">
+                    <div id="courses-table"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Course Modal -->
+    <div class="modal-overlay" id="course-modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="course-modal-title">Add Course</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="course-form">
+                    <input type="hidden" id="course-id" name="course_id">
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="course-code">Course Code *</label>
+                        <input 
+                            type="text" 
+                            id="course-code" 
+                            name="course_code" 
+                            class="form-control" 
+                            required 
+                            placeholder="e.g., CS101"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="course-name">Course Name *</label>
+                        <input 
+                            type="text" 
+                            id="course-name" 
+                            name="course_name" 
+                            class="form-control" 
+                            required 
+                            placeholder="e.g., Introduction to Programming"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="course-level">Level *</label>
+                        <select id="course-level" name="level_id" class="form-control" required>
+                            <option value="">Select level</option>
+                        </select>
+                    </div>
+
+                    <!-- Hidden field: All courses have 1 lecture slot by default -->
+                    <input type="hidden" id="lecture-slots" name="lecture_slots" value="1">
+
+                    <div class="form-group">
+                        <label class="form-label" for="lab-slots">Lab Slots</label>
+                        <select id="lab-slots" name="lab_slots" class="form-control">
+                            <option value="0">No Lab</option>
+                            <option value="1">1 slot</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="tutorial-slots">Tutorial Slots</label>
+                        <select id="tutorial-slots" name="tutorial_slots" class="form-control">
+                            <option value="0">No Tutorial</option>
+                            <option value="0.5">0.5 slot (half)</option>
+                            <option value="1">1 slot</option>
+                        </select>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button onclick="courseModal.close()" class="btn btn-secondary">Cancel</button>
+                <button onclick="saveCourse()" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/courses.js"></script>
+</body>
+</html>

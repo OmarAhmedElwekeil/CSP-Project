@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teaching Assistants - E-JUST Timetable System</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand" style="color: white;">E-JUST Timetable System</div>
+        <div class="navbar-menu"></div>
+    </nav>
+
+    <div class="page-header">
+        <h1>Teaching Assistants Management</h1>
+        <p>Manage TAs and their availability</p>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Teaching Assistants</h2>
+                <button onclick="openTAModal()" class="btn btn-primary">+ Add TA</button>
+            </div>
+            <div class="card-body">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <input 
+                            type="text" 
+                            id="ta-search" 
+                            class="form-control" 
+                            placeholder="Search TAs..."
+                            onkeyup="filterTAs()"
+                        >
+                    </div>
+                </div>
+                <div class="table-container">
+                    <div id="tas-table"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TA Modal -->
+    <div class="modal-overlay" id="ta-modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="ta-modal-title">Add Teaching Assistant</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="ta-form">
+                    <input type="hidden" id="ta-id" name="ta_id">
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="ta-name">TA Name *</label>
+                        <input 
+                            type="text" 
+                            id="ta-name" 
+                            name="ta_name" 
+                            class="form-control" 
+                            required 
+                            placeholder="e.g., Ahmed Mohamed"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="ta-courses">Courses Taught</label>
+                        <select 
+                            id="ta-courses" 
+                            name="course_ids" 
+                            class="form-control" 
+                            multiple 
+                            size="5"
+                        >
+                        </select>
+                        <small class="form-text">Hold Ctrl/Cmd to select multiple courses</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button onclick="taModal.close()" class="btn btn-secondary">Cancel</button>
+                <button onclick="saveTA()" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/tas.js"></script>
+</body>
+</html>

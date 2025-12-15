@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Levels Management - E-JUST Timetable System</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand" style="color: white;">E-JUST Timetable System</div>
+        <div class="navbar-menu"></div>
+    </nav>
+
+    <div class="page-header">
+        <h1>Levels, Sections & Groups Management</h1>
+        <p>Manage academic levels, sections, and student groups</p>
+    </div>
+
+    <div class="container">
+        <!-- Levels Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Levels</h2>
+                <button onclick="openLevelModal()" class="btn btn-primary">+ Add Level</button>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <div id="levels-table"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Groups Section (shows when level selected) -->
+        <div class="card hidden" id="groups-section">
+            <div class="card-header">
+                <h2 class="card-title">Groups in <span id="selected-level-name"></span></h2>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <div id="groups-table"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sections Section (shows when group selected) -->
+        <div class="card hidden" id="sections-section">
+            <div class="card-header">
+                <h2 class="card-title">Sections in <span id="selected-group-name"></span></h2>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <div id="sections-table"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level Modal -->
+    <div class="modal-overlay" id="level-modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="level-modal-title">Add Level</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="level-form">
+                    <input type="hidden" id="level-id" name="level_id">
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="level-number">Level Number *</label>
+                        <select 
+                            id="level-number" 
+                            name="level_number" 
+                            class="form-control" 
+                            required
+                        >
+                            <option value="">Select level</option>
+                            <option value="1">Level 1</option>
+                            <option value="2">Level 2</option>
+                            <option value="3">Level 3</option>
+                            <option value="4">Level 4</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="level-specialization">Specialization</label>
+                        <input 
+                            type="text" 
+                            id="level-specialization" 
+                            name="specialization" 
+                            class="form-control" 
+                            placeholder="e.g., Computer Science (required for Level 3 & 4)"
+                        >
+                        <small class="form-text">Required for Level 3 and Level 4</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="level-num-sections">Number of Groups *</label>
+                        <input 
+                            type="number" 
+                            id="level-num-sections" 
+                            name="num_sections" 
+                            class="form-control" 
+                            required 
+                            min="1"
+                            value="3"
+                            placeholder="e.g., 3"
+                        >
+                        <small class="form-text">Groups will be auto-generated</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="level-num-groups">Sections per Group *</label>
+                        <input 
+                            type="number" 
+                            id="level-num-groups" 
+                            name="num_groups_per_section" 
+                            class="form-control" 
+                            required 
+                            min="1"
+                            value="2"
+                            placeholder="e.g., 2"
+                        >
+                        <small class="form-text">Sections will be auto-generated for each group</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="level-total-students">Total Students *</label>
+                        <input 
+                            type="number" 
+                            id="level-total-students" 
+                            name="total_students" 
+                            class="form-control" 
+                            required 
+                            min="1"
+                            value="300"
+                            placeholder="e.g., 300"
+                        >
+                        <small class="form-text">Will be distributed across sections and groups</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button onclick="levelModal.close()" class="btn btn-secondary">Cancel</button>
+                <button onclick="saveLevel()" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Modal -->
+    <div class="modal-overlay" id="section-modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="section-modal-title">Add Section</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="section-form">
+                    <input type="hidden" id="section-id" name="section_id">
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="section-name">Section Name *</label>
+                        <input 
+                            type="text" 
+                            id="section-name" 
+                            name="name" 
+                            class="form-control" 
+                            required 
+                            placeholder="e.g., Section A"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="section-level">Level *</label>
+                        <select id="section-level" name="level_id" class="form-control" required>
+                            <option value="">Select level</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button onclick="sectionModal.close()" class="btn btn-secondary">Cancel</button>
+                <button onclick="saveSection()" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Group Modal -->
+    <div class="modal-overlay" id="group-modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="group-modal-title">Add Group</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="group-form">
+                    <input type="hidden" id="group-id" name="group_id">
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="group-name">Group Name *</label>
+                        <input 
+                            type="text" 
+                            id="group-name" 
+                            name="name" 
+                            class="form-control" 
+                            required 
+                            placeholder="e.g., Group 1"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="group-section">Section *</label>
+                        <select id="group-section" name="section_id" class="form-control" required>
+                            <option value="">Select section</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="group-capacity">Student Capacity</label>
+                        <input 
+                            type="number" 
+                            id="group-capacity" 
+                            name="student_capacity" 
+                            class="form-control" 
+                            min="1"
+                            placeholder="e.g., 30"
+                        >
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button onclick="groupModal.close()" class="btn btn-secondary">Cancel</button>
+                <button onclick="saveGroup()" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/levels.js"></script>
+</body>
+</html>

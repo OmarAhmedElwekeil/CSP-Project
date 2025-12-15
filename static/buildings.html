@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buildings & Rooms Management - E-JUST Timetable System</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-brand" style="color: white;">E-JUST Timetable System</div>
+        <div class="navbar-menu"></div>
+    </nav>
+
+    <div class="page-header">
+        <h1>Buildings & Rooms Management</h1>
+        <p>Manage buildings and their associated rooms</p>
+    </div>
+
+    <div class="container">
+        <!-- Buildings Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Buildings</h2>
+                <button onclick="openBuildingModal()" class="btn btn-primary">+ Add Building</button>
+            </div>
+            <div class="card-body">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <input 
+                            type="text" 
+                            id="building-search" 
+                            class="form-control" 
+                            placeholder="Search buildings..."
+                            onkeyup="filterBuildings()"
+                        >
+                    </div>
+                </div>
+                <div class="table-container">
+                    <div id="buildings-table"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Halls Section -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Halls</h2>
+                <button onclick="openHallModal()" class="btn btn-primary">+ Add Hall</button>
+            </div>
+            <div class="card-body">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <input 
+                            type="text" 
+                            id="hall-search" 
+                            class="form-control" 
+                            placeholder="Search halls..."
+                            onkeyup="filterHalls()"
+                        >
+                    </div>
+                </div>
+                <div class="table-container">
+                    <div id="halls-table"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rooms Section -->
+        <div class="card" id="rooms-section">
+            <div class="card-header">
+                <h2 class="card-title">Rooms</h2>
+                <button onclick="openRoomModal()" class="btn btn-primary">+ Add Room</button>
+            </div>
+            <div class="card-body">
+                <div class="toolbar">
+                    <div class="search-box">
+                        <input 
+                            type="text" 
+                            id="room-search" 
+                            class="form-control" 
+                            placeholder="Search rooms..."
+                            onkeyup="filterRooms()"
+                        >
+                    </div>
+                </div>
+                <div class="table-container">
+                    <div id="rooms-table"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Building Modal -->
+    <div class="modal-overlay" id="building-modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="building-modal-title">Add Building</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="building-form">
+                    <input type="hidden" id="building-id" name="building_id">
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="building-name">Building Name *</label>
+                        <input 
+                            type="text" 
+                            id="building-name" 
+                            name="building_name" 
+                            class="form-control" 
+                            required 
+                            placeholder="e.g., Engineering Building"
+                        >
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button onclick="buildingModal.close()" class="btn btn-secondary">Cancel</button>
+                <button onclick="saveBuilding()" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Room Modal -->
+    <div class="modal-overlay" id="room-modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="room-modal-title">Add Room</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="room-form">
+                    <input type="hidden" id="room-id" name="room_id">
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="room-number">Room Number *</label>
+                        <input 
+                            type="text" 
+                            id="room-number" 
+                            name="room_number" 
+                            class="form-control" 
+                            required 
+                            placeholder="e.g., G01, F01, F102 (G=Ground, F=Floor)"
+                        >
+                        <small class="form-text">Use format like G01 (Ground floor), F01 (First floor), etc.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="room-building">Building *</label>
+                        <select id="room-building" name="building_id" class="form-control" required>
+                            <option value="">Select building</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="room-type">Room Type *</label>
+                        <select id="room-type" name="room_type" class="form-control" required>
+                            <option value="">Select room type</option>
+                            <option value="Theater">Theater</option>
+                            <option value="Classroom">Classroom</option>
+                            <option value="Lab">Lab</option>
+                            <option value="Drawing Studio">Drawing Studio</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="room-capacity">Capacity *</label>
+                        <input 
+                            type="number" 
+                            id="room-capacity" 
+                            name="capacity" 
+                            class="form-control" 
+                            required 
+                            min="1"
+                            placeholder="e.g., 50"
+                        >
+                        <small class="form-text">Maximum number of students</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button onclick="roomModal.close()" class="btn btn-secondary">Cancel</button>
+                <button onclick="saveRoom()" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hall Modal -->
+    <div class="modal-overlay" id="hall-modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="hall-modal-title">Add Hall</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="hall-form">
+                    <input type="hidden" id="hall-id" name="hall_id">
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="hall-name">Hall Name *</label>
+                        <input 
+                            type="text" 
+                            id="hall-name" 
+                            name="hall_name" 
+                            class="form-control" 
+                            required 
+                            placeholder="e.g., Red Hall, Blue Hall, Green Hall"
+                        >
+                        <small class="form-text">Enter the hall name (typically named by color)</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="hall-capacity">Capacity *</label>
+                        <input 
+                            type="number" 
+                            id="hall-capacity" 
+                            name="capacity" 
+                            class="form-control" 
+                            required 
+                            min="1"
+                            placeholder="e.g., 500"
+                        >
+                        <small class="form-text">Maximum number of students</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button onclick="hallModal.close()" class="btn btn-secondary">Cancel</button>
+                <button onclick="saveHall()" class="btn btn-primary">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/buildings.js"></script>
+</body>
+</html>
