@@ -20,6 +20,7 @@ def get_schedule(
     group_id: Optional[int] = Query(None, description="Filter by group ID"),
     room_id: Optional[int] = Query(None, description="Filter by room ID"),
     level_id: Optional[int] = Query(None, description="Filter by level ID"),
+    section_id: Optional[int] = Query(None, description="Filter by section ID"),
     db: Session = Depends(get_db)
 ):
     """
@@ -28,7 +29,11 @@ def get_schedule(
     """
     query = db.query(models.Schedule)
     
-    # Apply filters
+    # Join with Group to enable level filtering
+    if level_id:
+        query = query.join(models.Group).join(models.Level).filter(models.Level.level_id == level_id)
+    
+    # Apply other filters
     if instructor_id:
         query = query.filter(models.Schedule.instructor_id == instructor_id)
     if ta_id:
@@ -37,6 +42,8 @@ def get_schedule(
         query = query.filter(models.Schedule.course_id == course_id)
     if group_id:
         query = query.filter(models.Schedule.group_id == group_id)
+    if section_id:
+        query = query.filter(models.Schedule.section_id == section_id)
     if room_id:
         query = query.filter(models.Schedule.room_id == room_id)
     
@@ -111,6 +118,10 @@ def generate_schedule(
     Requires admin privileges.
     """
     try:
+        # Refresh database session to ensure we get the latest data
+        db.expire_all()
+        db.commit()
+        
         scheduler = CSPScheduler(db)
         result = scheduler.generate_schedule()
         

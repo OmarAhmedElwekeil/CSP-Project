@@ -117,6 +117,10 @@ class CSPScheduler:
         self.sections_by_group: Dict[int, List] = {}
         self.building_names: Dict[int, str] = {}  # Cache building names
         
+        # Backtracking limits to prevent infinite loops
+        self.backtrack_calls = 0
+        self.max_backtrack_calls = 100000  # Safety limit
+        
     def generate_schedule(self) -> List[Dict]:
         """Main entry point - generates complete schedule"""
         try:
@@ -157,6 +161,9 @@ class CSPScheduler:
     def _load_cache(self):
         """Load and cache all necessary data"""
         print("\n📊 Loading data...")
+        
+        # Ensure we're reading fresh data from database
+        self.db.expire_all()
         
         # Load rooms by type
         rooms = self.db.query(models.Room).all()
@@ -233,61 +240,73 @@ class CSPScheduler:
                 ).all()
                 
                 for section in sections:
-                    # LAB: One per section (2 blocks)
-                    lab_var = SessionVariable(
-                        var_id=var_id_counter,
-                        course_id=course.course_id,
-                        course_code=course.course_code,
-                        course_name=course.course_name,
-                        session_type=SessionType.LAB,
-                        duration_blocks=2,
-                        student_count=section.num_students,
-                        required_room_type="Lab",
-                        level_id=section.level_id,
-                        group_id=group.group_id,
-                        group_number=group.group_number,
-                        section_id=section.section_id,
-                        section_number=section.section_number
-                    )
-                    var_id_counter += 1
-                    
-                    if not self._capacity_check(lab_var):
-                        raise ScheduleError(
-                            f"No Lab available for Section {section.section_number} "
-                            f"with {lab_var.student_count} students"
+                    # LAB: One per section (2 blocks) - only if course has lab slots
+                    if course.lab_slots > 0:
+                        lab_var = SessionVariable(
+                            var_id=var_id_counter,
+                            course_id=course.course_id,
+                            course_code=course.course_code,
+                            course_name=course.course_name,
+                            session_type=SessionType.LAB,
+                            duration_blocks=2,
+                            student_count=section.num_students,
+                            required_room_type="Lab",
+                            level_id=section.level_id,
+                            group_id=group.group_id,
+                            group_number=group.group_number,
+                            section_id=section.section_id,
+                            section_number=section.section_number
                         )
+                        var_id_counter += 1
+                        
+                        if not self._capacity_check(lab_var):
+                            raise ScheduleError(
+                                f"No Lab available for Section {section.section_number} "
+                                f"with {lab_var.student_count} students"
+                            )
+                        
+                        self.variables.append(lab_var)
                     
-                    self.variables.append(lab_var)
-                    
-                    # TUTORIAL: One per section (2 blocks for standard, 1 for small)
-                    # Use 1 block if section has <= 15 students
-                    duration = 1 if section.num_students <= 15 else 2
-                    
-                    tutorial_var = SessionVariable(
-                        var_id=var_id_counter,
-                        course_id=course.course_id,
-                        course_code=course.course_code,
-                        course_name=course.course_name,
-                        session_type=SessionType.TUTORIAL,
-                        duration_blocks=duration,
-                        student_count=section.num_students,
-                        required_room_type="Classroom",
-                        level_id=section.level_id,
-                        group_id=group.group_id,
-                        group_number=group.group_number,
-                        section_id=section.section_id,
-                        section_number=section.section_number
-                    )
-                    var_id_counter += 1
-                    
-                    if not self._capacity_check(tutorial_var):
-                        raise ScheduleError(
-                            f"No Classroom available for Tutorial (Section {section.section_number}) "
-                            f"with {tutorial_var.student_count} students"
+                    # TUTORIAL: One per section (2 blocks for standard, 1 for small) - only if course has tutorial slots
+                    if course.tutorial_slots > 0:
+                        # Use 1 block if section has <= 15 students
+                        duration = 1 if section.num_students <= 15 else 2
+                        
+                        tutorial_var = SessionVariable(
+                            var_id=var_id_counter,
+                            course_id=course.course_id,
+                            course_code=course.course_code,
+                            course_name=course.course_name,
+                            session_type=SessionType.TUTORIAL,
+                            duration_blocks=duration,
+                            student_count=section.num_students,
+                            required_room_type="Classroom",
+                            level_id=section.level_id,
+                            group_id=group.group_id,
+                            group_number=group.group_number,
+                            section_id=section.section_id,
+                            section_number=section.section_number
                         )
+                        var_id_counter += 1
+                        
+                        if not self._capacity_check(tutorial_var):
+                            raise ScheduleError(
+                                f"No Classroom available for Tutorial (Section {section.section_number}) "
+                                f"with {tutorial_var.student_count} students"
+                            )
+                        
+                        self.variables.append(tutorial_var)
                     
-                    self.variables.append(tutorial_var)
-                    print(f"      ✓ Lab + Tutorial for Section {section.section_number} ({section.num_students} students)")
+                    # Print what was actually generated for this section
+                    session_types = []
+                    if course.lab_slots > 0:
+                        session_types.append("Lab")
+                    if course.tutorial_slots > 0:
+                        session_types.append("Tutorial")
+                    if session_types:
+                        print(f"      ✓ {' + '.join(session_types)} for Section {section.section_number} ({section.num_students} students)")
+                    else:
+                        print(f"      ℹ Section {section.section_number} ({section.num_students} students) - No lab/tutorial sessions")
     
     def _capacity_check(self, variable: SessionVariable) -> bool:
         """Fail-fast: Check if ANY room can accommodate this session"""
@@ -306,6 +325,18 @@ class CSPScheduler:
     
     def _backtrack(self, var_index: int) -> bool:
         """Recursive backtracking with strict constraint checking"""
+        # Safety check: prevent infinite loops
+        self.backtrack_calls += 1
+        if self.backtrack_calls > self.max_backtrack_calls:
+            raise ScheduleError(
+                f"Backtracking exceeded maximum iterations ({self.max_backtrack_calls}). "
+                f"The constraints are too tight. Suggestions:\n"
+                f"  1. Add more rooms (especially Labs)\n"
+                f"  2. Assign more TAs to courses\n"
+                f"  3. Reduce number of sections or courses\n"
+                f"  4. Verify all courses have assigned instructors/TAs"
+            )
+        
         # Base case: all variables assigned
         if var_index >= len(self.variables):
             return True
@@ -316,7 +347,9 @@ class CSPScheduler:
         domain = self._generate_domain(variable)
         
         if len(domain) == 0:
-            print(f"    ⚠ No valid assignments for {variable}")
+            # Only print first few warnings to avoid spam
+            if self.backtrack_calls <= 100:
+                print(f"    ⚠ No valid assignments for {variable}")
             return False
         
         # Try each assignment in the domain
